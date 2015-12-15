@@ -1,7 +1,7 @@
 require 'optparse'
 require 'fileutils'
 
-CASK_PATH = '/usr/local/bin/brew-cask'
+CASK_PATH = '/usr/local/bin/brew cask'
 CASKROOM = '/opt/homebrew-cask/Caskroom'
 
 class Cask
@@ -12,18 +12,28 @@ class Cask
   end
 
   def self.apps
-    `#{CASK_PATH} list`.split
+    `#{CASK_PATH} list`.split /\n/
   end
 
   def self.last_versions
     Hash[apps.map do |app|
-      [app, `#{CASK_PATH} info #{app}`.scan(/#{app}: (.*)/)[0][0]]
+      begin
+        [app, `#{CASK_PATH} info #{app}`.scan(/#{app}: (.*)/)[0][0]]
+      rescue
+        puts "Problems with '#{app}'. Exiting..."
+        exit
+      end
     end]
   end
 
   def self.installed_versions
     Hash[apps.map do |app|
-      [app, Dir["#{CASKROOM}/#{app}/*"].map { |ver| File.basename ver }]
+      begin
+        [app, Dir["#{CASKROOM}/#{app}/*"].map { |ver| File.basename ver }]
+      rescue
+        puts "Problems with '#{app}'. Exiting..."
+        exit
+      end
     end]
   end
 
